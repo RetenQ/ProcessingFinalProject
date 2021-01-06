@@ -1,3 +1,27 @@
+import ddf.minim.*;
+Minim minim;
+
+AudioPlayer menu; 
+AudioPlayer playbgm1; 
+AudioPlayer end1;
+
+PImage fly ; 
+PImage end ; 
+PImage newhere ;
+PImage enter ; 
+PImage back ; 
+PImage plane ; 
+PImage HP;
+PImage HPUI;
+PImage zhangai ; 
+PImage kill ; 
+PImage enemy ; 
+
+PImage game1 ; 
+
+
+
+
 int savetime = 0 ;//记录点时间
 boolean timesave = false ; //只有当它为ture时才会更新savetime的值
 int runningtime ; //运行总时间
@@ -18,6 +42,7 @@ boolean exit = false ;
 boolean restart = false ;
 boolean getstart = false ;
 boolean backmenu = false ; 
+boolean bgm1p = false ; 
 
 
 int score  = 0 ; //总得分
@@ -65,6 +90,26 @@ boolean fadeenemy = false ;
 
 void setup() {
 size(1300,1000);
+
+fly = loadImage("fly.jpg");
+end = loadImage("end.jpg");
+newhere = loadImage("new.png");
+enter = loadImage("enter.png");
+back = loadImage("back.png");
+plane = loadImage("plane.png");
+HP = loadImage("HP.png");
+HPUI = loadImage("HPUI.png");
+zhangai = loadImage("zhangai.png");
+game1 = loadImage("game1.jpg");
+kill = loadImage("kill.png");
+enemy = loadImage("enemy.png");
+
+minim = new Minim(this);
+playbgm1 = minim.loadFile("Twilight_Melody (1)mp3.mp3");
+end1 = minim.loadFile("youweiqingnian.mp3");
+menu = minim.loadFile("Lights Frightened The Captain - Stars As Lights.mp3");
+
+
 for (int i = 0 ; i <= 19; i++ )
 {
 arrayrectx[i] = 1000 ;
@@ -83,6 +128,7 @@ void draw(){
 if(screenMode == 0){
  background(0,0,0);
  fill(225,225,225);
+ menu.play();
  mainMenu();
 }
   
@@ -99,7 +145,7 @@ if(screenMode == 1){
  
  if(getcontrol == 1){
    
-   background(0,0,0);
+  background(0,0,0);
   textSize(200);
   text("KeyBorad!",250,500);
   
@@ -150,10 +196,12 @@ if(screenMode == 11){
   textSize(40);
   text("Everytime you pass a barrier,kill enemy,you will get points; \nAnd how long did you survive can also affect the points;\nWhen you strike them,HP-1;\nBy the way,As time goes on,Difficulity will get harder!",0,300);
   text("EZ: you can choose mouse or keyboar to control the player \n      and what should you do is just move! ",0,600);
-  text("Normal: Default Level,Only use keyboard to control,\n             pressed ‘space’to jump,when jumping pressed to fall\n             Pressed the LEFT '<-' to stop\n             and pressed RIGHT'->' to recovery",0,750);
+  text("Normal: Default Level,Only use keyboard to control,\n             pressed ‘space’to jump,when jumping pressed to fall\n             Pressed  'z' to stop; 'x' or 'space' to recovery\n             pressed 'c' to kill enenmy ",0,750);
   text("Higest: Faster,More enemy,MORE POINTS aw well!",0,975);
   
   ellipsePressed(1100,900,150,0);
+  imageMode(CENTER);
+  image(back,1100,900,100,100);
   
 } 
   
@@ -181,7 +229,13 @@ if(screenMode == 11){
     text("Highest",830,485);
     
     ellipsePressed(100,900,100,0);
+    imageMode(CENTER);
+    image(back,100,900,50,50);
+    
+    
     ellipsePressed(300,900,100,11);
+    imageMode(CENTER);
+    image(newhere,300,900,100,100);
   }
   
   if(screenMode == 131){
@@ -229,14 +283,28 @@ if(screenMode == 11){
         if(hp==0){
           exit = false ;
           restart = false;
+          playbgm1.rewind();
+          playbgm1.pause();
           screenMode = 3 ; 
         }
+      menu.pause();
+      menu.rewind();
+          
+        if(bgm1p == false){
+        playbgm1.play();
+        bgm1p = true ; 
+        }
+        
         
       if(part == 0) background(255,255,255); //设置背景
       if(part == 1) background(0,225,150);
       if(part == 2) background(150,225,150);
       if(part == 3) background(225,225,200);
       if(part == 9) screenMode =3 ; 
+      
+      imageMode(CENTER);
+      image(game1,750,500);
+      
       
        runningtime  = millis() ;  //记录当前的时间
        
@@ -265,7 +333,11 @@ if(screenMode == 11){
        if(a==-2*g){
         fill(0,255,0); 
        }
-       ellipse(locationx,locationy,r,r); 
+       //碰撞箱   ellipse(locationx,locationy,r,r); 
+       imageMode(CENTER);
+       image(plane,locationx+110,locationy,300 ,r);
+       ellipse(locationx-100,locationy,20,20);//指示灯
+
        //
        
        if(runningtime >= (Presstime+750) ){
@@ -273,18 +345,24 @@ if(screenMode == 11){
         a = 0 ; 
         press =false ;
        }
+       //击杀敌人判定
        rectMode(CENTER);
-       fill(200,200,200);
+       fill(150,150,200);
        killx = locationx+500;
        killy = locationy+50 ;
-       rect(killx,killy,200,2000);
-       if(mousePressed == true){
+              if(runningtime - killtime >=2000){
+       fill(200,200,200);
+ }
+       imageMode(CENTER);
+       image(kill,killx,killy,200,2000);
+       if(key == 'c'){
          if(runningtime - killtime >=2000){
          fill(150,150,200);
          rect(killx,killy,200,2000);
          killtime = millis();
          if(arrayenemy[countenemy]<= killx +100 && arrayenemy[countenemy] >= killx-100){
-         fadeenemy = true ;
+            score =score+10;
+           fadeenemy = true ;
          }
          }
        }
@@ -309,10 +387,14 @@ if(screenMode == 11){
        
        if(drawrect == true){
         //如果允许绘画
-        rectMode(CORNER);
+        //rect碰撞箱
+        //rectMode(CORNER);
         arrayrectx[countrect] = arrayrectx[countrect]+rectmove ; 
-        rect(arrayrectx[countrect],0,rectwidth,randomhight[countrect]);
-        rect(arrayrectx[countrect],(distance+randomhight[countrect]),rectwidth,(1000-randomhight[countrect]-distance));  
+        //rect(arrayrectx[countrect],0,rectwidth,randomhight[countrect]);
+        //rect(arrayrectx[countrect],(distance+randomhight[countrect]),rectwidth,(1000-randomhight[countrect]-distance));  
+        imageMode(CORNER);
+        image(zhangai,arrayrectx[countrect],0,rectwidth,randomhight[countrect]);
+        image(zhangai,arrayrectx[countrect],(distance+randomhight[countrect]),rectwidth,(1000-randomhight[countrect]-distance));
        }
        // 柱状移动写完了，真是个大工程 
        
@@ -327,7 +409,7 @@ if(screenMode == 11){
     if(drawenemy == true &&fadeenemy == false){
         arrayenemy[countenemy] = arrayenemy[countenemy]+enemymove ; 
         fill(125,125,125);
-        ellipse(arrayenemy[countenemy],enemyhight[countenemy],enemyr,enemyr);
+        image(enemy,arrayenemy[countenemy],enemyhight[countenemy],enemyr,enemyr);
     }
          
        
@@ -422,33 +504,44 @@ if(screenMode == 11){
 //结算界面screenMode3
  if(screenMode == 3){ 
     background(0,0,0);
+    end1.play();
     
-    textSize(30);
-    text("The time you passed is " + scoret+" s" ,650,500);    
-    textSize(30);
-    text("The score you got  is " + score+" points" ,650,600);
+    imageMode(CORNER);
+    image(end,0,-50);
     
-    textSize(50);
-    text("Game Over!",250,500);
+    fill(255.255,255);
+    textSize(40);
+    text("The time you passed is " + scoret+" s" ,650,300);    
+    textSize(40);
+    text("The score you got  is " + score+" points" ,650,400);
+    
+    textSize(80);
+    text("Game Over!",370,150);
     
     //退出游戏
-    textSize(20);
-    text("Take e to exit the game",250,600);
+    textSize(30);
+    text("Take e to exit the game",230,300);
     if(exit == true){
+     end1.rewind();
+     end1.pause();
     exit();
     }    
     //重开
-    textSize(20);
-    text("Take r to restart the game",250,650);    
+    textSize(30);
+    text("Take r to restart the game",230,375);    
     if(restart == true){
      regame();
+     end1.rewind();
+     end1.pause();
      screenMode = 2 ; 
     }
     //返回菜单
-    textSize(20);
-    text("Take b to back the menu",250,700);
+    textSize(30);
+    text("Take b to back the menu",230,450);
     if(backmenu == true){
      regame();//重置游戏
+     end1.rewind();
+     end1.pause();
      screenMode = 0 ;//返回菜单  
     }
     
@@ -559,7 +652,7 @@ if(screenMode == 11){
   void Mode2UI(){
     //游戏场景UI设计
    rectMode(CORNER);
-   fill(0,0,150);
+   fill(125,125,125);
    rect(1000,0,300,1000);
    
    fill(255,255,255);
@@ -592,23 +685,26 @@ if(screenMode == 11){
    int HPy = 700;
    int HPyy = HPy+100;
    int HPSize = 30 ;
-   if(hp>=1) ellipse(1050,HPy,HPSize,HPSize); 
-   if(hp>=2) ellipse(1100,HPy,HPSize,HPSize); 
-   if(hp>=3) ellipse(1150,HPy,HPSize,HPSize); 
-   if(hp>=4) ellipse(1200,HPy,HPSize,HPSize); 
-   if(hp>=5) ellipse(1250,HPy,HPSize,HPSize); 
-   if(hp>=6) ellipse(1050,HPyy ,HPSize,HPSize); 
-   if(hp>=7) ellipse(1100,HPyy,HPSize,HPSize); 
-   if(hp>=8) ellipse(1150,HPyy,HPSize,HPSize); 
-   if(hp>=9) ellipse(1200,HPyy,HPSize,HPSize); 
-   if(hp>=10) ellipse(1250,HPyy,HPSize,HPSize); 
+   imageMode(CENTER);
+   image(HPUI,1050,650,100,70);
+   
+   if(hp>=1) image(HP,1050,HPy,HPSize,HPSize); 
+   if(hp>=2) image(HP,1100,HPy,HPSize,HPSize); 
+   if(hp>=3) image(HP,1150,HPy,HPSize,HPSize); 
+   if(hp>=4) image(HP,1200,HPy,HPSize,HPSize); 
+   if(hp>=5) image(HP,1250,HPy,HPSize,HPSize); 
+   if(hp>=6) image(HP,1050,HPyy ,HPSize,HPSize); 
+   if(hp>=7) image(HP,1100,HPyy,HPSize,HPSize); 
+   if(hp>=8) image(HP,1150,HPyy,HPSize,HPSize); 
+   if(hp>=9) image(HP,1200,HPyy,HPSize,HPSize); 
+   if(hp>=10)image(HP,1250,HPyy,HPSize,HPSize); 
   }
   
   void keystop(){
    //键盘操控时的瞬停系统
-       if(keyCode == LEFT ){
+       if(key=='z' ){
          keystop = true;      
-        }else if(keyCode == RIGHT){keystop = false ;} 
+        }else if(key == 'x'){keystop = false ;} 
      
      if(keystop == true){
        locationy = locationy ; 
@@ -617,13 +713,21 @@ if(screenMode == 11){
      }
    } 
   void mainMenu(){
-   //主界面设计   
+   //主界面设计  
+   imageMode(CENTER);
+   image(fly,650,500);
+   fill(255,255,255);
    textSize(100);
-   text("M.A.I.N",450,300);  
+   text("Dream  Of  Flying",250,300);  
    //开始
    ellipsePressed(500,600,150,12);//按下按钮，切换至难度选择界面 
+   imageMode(CENTER);
+   image(enter,500,600,150,150);
+   
    //教程
    ellipsePressed(800,600,150,11);//按下按钮，切换至新手教程界面
+   imageMode(CENTER);
+   image(newhere,800,600,150,150);
    }
      
  void ellipsePressed(int xe ,int ye,int re,int modee){
