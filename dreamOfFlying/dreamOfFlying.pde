@@ -4,6 +4,11 @@ Minim minim;
 AudioPlayer menu; 
 AudioPlayer playbgm1; 
 AudioPlayer end1;
+AudioPlayer anniu;
+AudioPlayer attack;
+AudioPlayer ok ; 
+AudioPlayer hpplus ; 
+AudioPlayer error ; 
 
 PImage fly ; 
 PImage end ; 
@@ -18,24 +23,25 @@ PImage kill ;
 PImage enemy ; 
 
 PImage game1 ; 
+PImage game2 ;
+PImage game3 ;
+PImage game4 ;
 
 
+int savetime = 0 ;//Record  time
+boolean timesave = false ; //The value of savetime will be updated only when it is true
+int runningtime ; //record tunning time
+int Presstime ; //When the record is clicked, it is updated every time the mouse is clicked
+int controlMode = 1 ; //control Mode 1 is key board，2 is mouse
+int getcontrol = 0;  //
+boolean keystop = false ; //the "StopMode" in keyboardMode
+int screenMode = 0 ; //screenmode control
 
-
-int savetime = 0 ;//记录点时间
-boolean timesave = false ; //只有当它为ture时才会更新savetime的值
-int runningtime ; //运行总时间
-int Presstime ; //点击记录时，每次点击鼠标时更新
-int controlMode = 1 ; //控制模式，1是键盘，2是鼠标
-int getcontrol = 0;  //对应的，1是键盘，2是鼠标，0是缓冲状态
-boolean keystop = false ; //键盘操作独有的停顿模式
-int screenMode = 0 ; //场景控制系统
-//0.游戏主界面 1.控制选择界面 11.新手教程界面 12.难度控制界面 131/132.专属于Normal和High的开始界面 2.游戏界面  3.结算界面
-int hp = 10; //定义一个生命值，初始为10
-int hptime = 30 ;//hp回复时间
+int hp = 10; //HP
+int hptime = 10 ;//time pf Hp recovery
 boolean rehp = false ;
 int level = 1 ; //0 EZ  1 NORMAL   2 HIGHEST
-int part = 0; //难度区分，以后可能的话会是关卡区分
+int part = 0; 
 
 
 boolean exit = false ; 
@@ -45,42 +51,42 @@ boolean backmenu = false ;
 boolean bgm1p = false ; 
 
 
-int score  = 0 ; //总得分
-int scoret = 0 ; //持续时间得分
-int scoreg = 0 ; //通过个数得分
+int score  = 0 ; //Points
+int scoret = 0 ; //
+int scoreg = 0 ; //
 
 boolean press = false;
 
 int locationx = 150 ; 
 int locationy = 200 ; 
-int r = 75 ; //小球半径
-int a = 0 ; //向上加速度 
-int g = 10 ; //向下加速度
-int killx = 0;//可进行消除的矩形的判定 
+int r = 75 ; 
+int a = 0 ; 
+int g = 10 ; 
+int killx = 0;
 int killy = 0;
-int killtime ; //击杀计时器，触发一次击杀更新一次
+int killtime ; 
 
 //int []bulletx = new int[30];//子弹库x
 //int []bullety = new int[30];//子弹库y
 //int bulletcount = 0 ;
      
-int rectmove = -5 ;//矩形移速,绝对值越大难度越大
-int distance = 300 ;//两矩形间隔
-int rectwidth = 100 ; //矩形宽度
-int recttime = 0 ; //出现间隔时间
-boolean drawrect = false ; //是否允许绘画 
-int [] arrayrectx = new int [20];//矩形x数组
-int countrect =0 ; //矩形计数器
-float [] randomhight = new float[20];//随机高度数组
-int judge = 30 ; //判定区域修补，数值越大难度越大 30大概是最正常的
+int rectmove = -5 ;//Rectangular movement speed, the greater the absolute value, the greater the difficulty
+int distance = 300 ;//Two rectangle spacing
+int rectwidth = 100 ; //
+int recttime = 0 ; //
+boolean drawrect = false ; //
+int [] arrayrectx = new int [20];//
+int countrect =0 ; //
+float [] randomhight = new float[20];//
+int judge = 30 ; //Determine area repair, the larger the value, the greater the difficulty. 30 is probably the most normal
 
-int enemytime =2000; //敌人出现间
-int [] arrayenemy = new int [20];//敌人数量矩阵
-float [] enemyhight = new float [20]; //敌人飞行高度矩阵
-int countenemy ; //敌人计数器
-int timeOfenemy ; //敌人计时器
-int  enemymove =-20 ;//敌人速度
-int  enemyr = 80 ; //敌人半径
+int enemytime =2000; //
+int [] arrayenemy = new int [20];//
+float [] enemyhight = new float [20]; //
+int countenemy ; //
+int timeOfenemy ; //
+int  enemymove =-20 ;//
+int  enemyr = 80 ; //
 boolean drawenemy = false;
 
 boolean fadeenemy = false ; 
@@ -101,6 +107,9 @@ HP = loadImage("HP.png");
 HPUI = loadImage("HPUI.png");
 zhangai = loadImage("zhangai.png");
 game1 = loadImage("game1.jpg");
+game2 = loadImage("game2.jpg");
+game3 = loadImage("game3.jpg");
+game4 = loadImage("game4.jpg");
 kill = loadImage("kill.png");
 enemy = loadImage("enemy.png");
 
@@ -108,7 +117,11 @@ minim = new Minim(this);
 playbgm1 = minim.loadFile("Twilight_Melody (1)mp3.mp3");
 end1 = minim.loadFile("youweiqingnian.mp3");
 menu = minim.loadFile("Lights Frightened The Captain - Stars As Lights.mp3");
-
+anniu = minim.loadFile("anniu.wav");
+attack=minim.loadFile("attack.wav");
+ok = minim.loadFile("ok.wav");
+hpplus = minim.loadFile("hpplus.mp3");
+error = minim.loadFile("error.wav");
 
 for (int i = 0 ; i <= 19; i++ )
 {
@@ -124,7 +137,7 @@ for (int i = 0 ; i <= 19 ; i++ )
 
 void draw(){
   frameRate(60);
-  //初始界面  screenMode 0
+  // screenMode 0
 if(screenMode == 0){
  background(0,0,0);
  fill(225,225,225);
@@ -133,7 +146,7 @@ if(screenMode == 0){
 }
   
   
-//控制选择界面 screenMode1
+//screenMode1
 if(screenMode == 1){
  background(0,0,0);
  fill(225,225,225);
@@ -152,7 +165,7 @@ if(screenMode == 1){
   textSize(100);
   text("Take g to start",250,600);
   if(getstart == true){
-    //如果选择键盘输入
+  
     controlMode = 1 ; 
     screenMode = 2 ;
     getcontrol = 0 ;
@@ -161,7 +174,7 @@ if(screenMode == 1){
    }
  
   if(getcontrol == 2){
-   //如果选择鼠标输入
+   
   background(0,0,0);
   textSize(200);
   text("Mouse!",250,500);
@@ -184,7 +197,7 @@ if(screenMode == 1){
 
 
 
-//新手教程界面
+
 if(screenMode == 11){
   background(0,0,0);
   textSize(70);
@@ -207,7 +220,7 @@ if(screenMode == 11){
   
 
   if(screenMode == 12){
-   //难度选择界面 
+  
     background(0,0,0);
     fill(255,255,255);
     textSize(100);
@@ -277,9 +290,9 @@ if(screenMode == 11){
   
   
   
-//游戏界面 screenMode2  
+// screenMode2  
  if(screenMode == 2){
-        //生命系统
+        //HP
         if(hp==0){
           exit = false ;
           restart = false;
@@ -296,26 +309,38 @@ if(screenMode == 11){
         }
         
         
-      if(part == 0) background(255,255,255); //设置背景
-      if(part == 1) background(0,225,150);
-      if(part == 2) background(150,225,150);
-      if(part == 3) background(225,225,200);
-      if(part == 9) screenMode =3 ; 
+      if(part == 0) {
+        imageMode(CENTER);
+        image(game1,750,500);//
+      }
+      if(part == 1) {
+        imageMode(CENTER);
+                    image(game2,750,500);
+      }
+      if(part == 2) {
+        imageMode(CENTER);
+        image(game3,550,500);
+      }
+      if(part == 3)
+      {
+        imageMode(CENTER);
+        image(game4,750,500);
+      }
+      if(part == 4) screenMode =3 ; 
       
-      imageMode(CENTER);
-      image(game1,750,500);
+
       
       
-       runningtime  = millis() ;  //记录当前的时间
+       runningtime  = millis() ;  //Record the current time
        
-        //右侧UI区 
+         
         Mode2UI();
        //
        
-       //小球运动
+       //
        
        if(controlMode == 1){
-         //键盘控制模式
+         //
         if(level == 0 ){
         locationy = locationy + g +a ;
         }else if(level == 1 || level == 2){
@@ -325,7 +350,7 @@ if(screenMode == 11){
        }
        //
        if(controlMode == 2){
-         //鼠标控制模式
+         //
        locationy = mouseY ;
        }
        
@@ -333,7 +358,7 @@ if(screenMode == 11){
        if(a==-2*g){
         fill(0,255,0); 
        }
-       //碰撞箱   ellipse(locationx,locationy,r,r); 
+       //BOX2D   ellipse(locationx,locationy,r,r); 
        imageMode(CENTER);
        image(plane,locationx+110,locationy,300 ,r);
        ellipse(locationx-100,locationy,20,20);//指示灯
@@ -341,27 +366,30 @@ if(screenMode == 11){
        //
        
        if(runningtime >= (Presstime+750) ){
-         //进行一次是否恢复下降状态的判定
+         //
         a = 0 ; 
         press =false ;
        }
-       //击杀敌人判定
+       //
        rectMode(CENTER);
-       fill(150,150,200);
+       fill(255,0,0,50);
        killx = locationx+500;
        killy = locationy+50 ;
-              if(runningtime - killtime >=2000){
-       fill(200,200,200);
+       if(runningtime - killtime >=2000){
+       fill(0,0,255,50);
  }
-       imageMode(CENTER);
-       image(kill,killx,killy,200,2000);
+       rectMode(CENTER);
+       rect(killx,killy,200,2000);
        if(key == 'c'){
          if(runningtime - killtime >=2000){
+         attack.rewind();
+         attack.pause();
+         attack.play(); 
          fill(150,150,200);
          rect(killx,killy,200,2000);
          killtime = millis();
          if(arrayenemy[countenemy]<= killx +100 && arrayenemy[countenemy] >= killx-100){
-            score =score+10;
+            score =score+50;
            fadeenemy = true ;
          }
          }
@@ -375,20 +403,18 @@ if(screenMode == 11){
        //
           
        
-       //柱状移动
+       //Columnar movement
        fill(125,125,125);
        if((runningtime - recttime)>6000 ||(arrayrectx[countrect]+rectwidth)==0){
-         //随机刷新器
+         //Fresh Random
           countrect++ ;
           randomhight[countrect]=random(200,700);
           recttime = millis();
-          drawrect = true ; //刷新绘画rect状态
+          drawrect = true ; //
        }
        
        if(drawrect == true){
-        //如果允许绘画
-        //rect碰撞箱
-        //rectMode(CORNER);
+       
         arrayrectx[countrect] = arrayrectx[countrect]+rectmove ; 
         //rect(arrayrectx[countrect],0,rectwidth,randomhight[countrect]);
         //rect(arrayrectx[countrect],(distance+randomhight[countrect]),rectwidth,(1000-randomhight[countrect]-distance));  
@@ -396,11 +422,11 @@ if(screenMode == 11){
         image(zhangai,arrayrectx[countrect],0,rectwidth,randomhight[countrect]);
         image(zhangai,arrayrectx[countrect],(distance+randomhight[countrect]),rectwidth,(1000-randomhight[countrect]-distance));
        }
-       // 柱状移动写完了，真是个大工程 
+   
        
-       //敌人移动
+       
        if((runningtime - timeOfenemy)>enemytime) {
-      //enemy刷新
+      //enemy fresh
       countenemy++ ;
       enemyhight[countenemy]=random(100,900);
       timeOfenemy = millis();
@@ -413,8 +439,7 @@ if(screenMode == 11){
     }
          
        
-       //碰撞判定
-               //敌人碰撞
+     
         if(fadeenemy == false){       
         if(locationx <= (arrayenemy[countenemy]+enemyr) && locationx>=(arrayenemy[countenemy]-enemyr)){
           if((locationy-r)>=(enemyhight[countenemy]+enemyr)  ||(locationy+r)<=(enemyhight[countenemy]-enemyr) ){
@@ -422,6 +447,9 @@ if(screenMode == 11){
           }else{ 
             drawenemy = false ;
             arrayenemy[countenemy] = -1000;
+             error.rewind();
+             error.pause();
+             error.play(); 
             hp -- ; 
            background(0,0,0);
           }
@@ -431,15 +459,21 @@ if(screenMode == 11){
        
         if((arrayrectx[countrect]-2*r) <= (locationx - r) && (locationx - r) <= (arrayrectx[countrect]+rectwidth))
         {
-         //检测到球已经进入判定区域
+         //
          if((locationy-r)>=(randomhight[countrect]-judge) && (randomhight[countrect]+distance) >= ((locationy +r) -judge))
          {
-          //进行“通过”的判定
+          //
          textSize(100);
          text(scoreg,locationx+30,locationy-30);
+         ok.rewind();
+         ok.pause();
+         ok.play(); 
          scoreg++;
       
          }else{
+         error.rewind();
+         error.pause();
+         error.play(); 
           hp -- ; 
           arrayrectx[countrect] = -100 ;
          }        
@@ -450,7 +484,7 @@ if(screenMode == 11){
        //
        
        
-       //矩形数组刷新
+       //
        if(countrect == 18){
          countrect = 0 ;
          for (int i = 0 ; i <= 19 ; i++ )
@@ -459,7 +493,7 @@ if(screenMode == 11){
       }
        }
        
-       //敌人数组刷新
+       //
            if(countenemy == 18){
              countenemy= 0 ;
              for (int i = 0 ; i <= 19 ; i++ )
@@ -469,7 +503,7 @@ if(screenMode == 11){
            }
        
        
-       //上下边界判定
+       //
        if(locationy>(1000-r) ){
          hp -- ;  
          //locationy =200;  
@@ -490,18 +524,18 @@ if(screenMode == 11){
        
        
               
-       //计算分
+       //
        scoret = (runningtime-savetime)/1000;
        if(level == 2){
          score = (scoret +scoreg/5)*2;
        }else score =  scoret +scoreg/5 ; 
     }
-    //Mode2由此结束
+    //
       
      
       
       
-//结算界面screenMode3
+//screenMode3
  if(screenMode == 3){ 
     background(0,0,0);
     end1.play();
@@ -518,7 +552,7 @@ if(screenMode == 11){
     textSize(80);
     text("Game Over!",370,150);
     
-    //退出游戏
+    //exit
     textSize(30);
     text("Take e to exit the game",230,300);
     if(exit == true){
@@ -526,7 +560,7 @@ if(screenMode == 11){
      end1.pause();
     exit();
     }    
-    //重开
+    //restart
     textSize(30);
     text("Take r to restart the game",230,375);    
     if(restart == true){
@@ -535,27 +569,27 @@ if(screenMode == 11){
      end1.pause();
      screenMode = 2 ; 
     }
-    //返回菜单
+    //back to menu
     textSize(30);
     text("Take b to back the menu",230,450);
     if(backmenu == true){
-     regame();//重置游戏
+     regame();//
      end1.rewind();
      end1.pause();
-     screenMode = 0 ;//返回菜单  
+     screenMode = 0 ;// 
     }
     
   }
   
- //持续运行区域
  
- //计数器更新器
+ 
+ 
  if(timesave == true){
   savetime = millis();
   timesave = false ; 
  }
  
- //难度更新器
+ 
  if(score >= 150) {
    part = 1 ;
    difficulty(-6,11,280,-25) ; 
@@ -574,8 +608,12 @@ if(screenMode == 11){
    part = 4 ;
  }
  
- //hp转化器
+
  if(scoret >=hptime ) {
+  hpplus.pause();
+  hpplus.rewind();
+  hpplus.play() ; 
+      
    hp++;
    hptime = scoret + hptime ; 
  }
@@ -586,9 +624,9 @@ if(screenMode == 11){
 
 
  void keyPressed(){
-    //键盘点击时，进行判断
+   
       if(key == ' '){
-        //如果敲得是空格
+        
         if(press == false){
        a = -2*(g);  
        Presstime  = millis();
@@ -618,11 +656,15 @@ if(screenMode == 11){
       if(key == 'g'){
          getstart = true ;  
       }
+      if (key == 'l'){
+        part++;
+      }
+
       
     
    }
    
-  //整理区
+  
   void regame(){
     //重置游戏
      locationy = 200 ; 
@@ -638,6 +680,7 @@ if(screenMode == 11){
      drawrect = false;
      backmenu = false ; 
      timesave = true ;
+     bgm1p = false ; 
      level = 1 ;
      g =10;
      a = 0 ;
@@ -736,10 +779,14 @@ if(screenMode == 11){
    ellipse(xe,ye,re,re);
    //
    if(mouseX>=(xe-re)&&mouseX<=(xe+re)&&mouseY>=(ye-re)&&mouseY<=(ye+re)){
+
    fill(125,125,125);
    ellipse(xe,ye,re,re);
    if(mousePressed){ 
+   anniu.rewind();
+   anniu.pause();
      screenMode = modee ;
+      anniu.play();
    }
     }
  }
@@ -754,6 +801,9 @@ if(screenMode == 11){
  rect(xr,yr,rx,ry);
  if(mousePressed){ 
  screenMode = moder ;
+ anniu.rewind();
+ anniu.pause();
+ anniu.play();
   }
     }
  }
